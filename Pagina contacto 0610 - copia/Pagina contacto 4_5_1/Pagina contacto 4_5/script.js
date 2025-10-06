@@ -1489,7 +1489,7 @@ actualizarBadgeRecordatorios(contactosData);
 
   // Inicializar botón copiar e implementar evento
   const btnCopiar = trDetalle.querySelector('.btn-copiar-mensaje');
-  const textareaMensaje = trDetalle.querySelector('.texto-mensaje');
+  // Usamos la referencia ya declarada arriba: textareaMensaje
   const mensajeCopiado = trDetalle.querySelector('.mensaje-copiado');
 
   btnCopiar.innerHTML = copiarSVG;
