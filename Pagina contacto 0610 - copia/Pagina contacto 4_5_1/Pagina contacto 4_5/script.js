@@ -1576,9 +1576,12 @@ function mostrarContactos(contactos) {
       htmlUbicacion = textoUbicacionFinal;
     }
     
+    // CORREGIDO: determinar tipo también por 'interes' cuando no hay vivienda-interesada
+    const interesCampo = (c['interes'] || '').trim();
     const viviendaInteresadaRaw = c['vivienda-interesada']?.trim() || '';
     const viviendaInteresada = (viviendaInteresadaRaw === '—') ? '' : viviendaInteresadaRaw;
-    const tipoVivienda = (viviendaInteresada !== '') ? 'Villas isla de Cortegada' : 'Vivienda normal';
+    const esVillas = (viviendaInteresada !== '') || interesCampo === 'Villas isla de Cortegada';
+    const tipoVivienda = esVillas ? 'Villas isla de Cortegada' : 'Vivienda normal';
     const inversion = c['number-419'] ?
   new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(c['number-419']) : '';
     
@@ -2272,13 +2275,19 @@ function aplicarFiltro() {
     contactosFiltrados = datosBase;
   } else if (filtro === 'vivienda-normal') {
     contactosFiltrados = datosBase.filter(c => {
-      const vi = c['vivienda-interesada']?.trim() || '';
-      return vi === '' || vi === '—';
+      const interesCampo = (c['interes'] || '').trim();
+      const viRaw = c['vivienda-interesada']?.trim() || '';
+      const vi = (viRaw === '—') ? '' : viRaw;
+      const esVillas = (vi !== '') || interesCampo === 'Villas isla de Cortegada';
+      return !esVillas;
     });
   } else if (filtro === 'villas-isla') {
     contactosFiltrados = datosBase.filter(c => {
-      const vi = c['vivienda-interesada']?.trim() || '';
-      return vi !== '' && vi !== '—';
+      const interesCampo = (c['interes'] || '').trim();
+      const viRaw = c['vivienda-interesada']?.trim() || '';
+      const vi = (viRaw === '—') ? '' : viRaw;
+      const esVillas = (vi !== '') || interesCampo === 'Villas isla de Cortegada';
+      return esVillas;
     });
   }
 
