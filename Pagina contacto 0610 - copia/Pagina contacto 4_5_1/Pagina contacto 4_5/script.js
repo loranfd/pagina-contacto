@@ -1003,18 +1003,71 @@ Si desea ampliar información o concertar una cita, estaremos encantados de aten
 Un cordial saludo,`;
 }
 
-// Función para determinar el asunto del email según el tipo de vivienda
-function obtenerAsuntoEmail(tipoVivienda) {
+// NUEVO: Mensaje HTML para Villas (Correo 2)
+function generarMensajeHTMLVillasCorreo2(nombreCompleto) {
+  const nombreCapitalizado = obtenerNombreCapitalizado(nombreCompleto);
+  const ahora = new Date();
+  const horaEspaña = new Intl.DateTimeFormat('es-ES', {
+    timeZone: 'Europe/Madrid',
+    hour: '2-digit',
+    hour12: false
+  }).format(ahora);
+  const hora = parseInt(horaEspaña, 10);
+  const saludo = (hora >= 13) ? 'Buenas tardes' : 'Buenos días';
+
+  return `
+    <p><strong>${saludo} ${nombreCapitalizado}</strong></p>
+    <p>Ha sido un placer hablar con usted y poder resolver algunas de sus dudas acerca de la promoción Villas Isla de Cortegada. Le agradecemos de nuevo tanto su interés como el tiempo que nos dedicó en la llamada.</p>
+    <p>Tal y como comentamos, y como habrá podido ver en el dossier que le enviamos previamente, se trata de un proyecto singular en un enclave privilegiado, donde cada vivienda combina diseño exclusivo, sostenibilidad certificada y unas vistas al mar que permanecerán siempre despejadas.</p>
+    <p>Por la singularidad del proyecto y la demanda que estamos recibiendo, le animamos a actuar pronto para no dejar pasar la oportunidad de disfrutar de su nueva vivienda junto al mar.</p>
+    <p>Nos encantaría acompañarle en el siguiente paso, ya sea realizando una reserva formal, lo que le otorgaría un carácter prioritario para asegurar la vivienda que elija y garantizar su disponibilidad exclusiva, o concertando una reunión presencial para que pueda conocer el proyecto más de cerca.</p>
+    <p>Quedo a su disposición para coordinar lo que le resulte más cómodo.</p>
+    <p>Un cordial saludo,</p>
+  `;
+}
+
+// NUEVO: Mensaje texto plano para Villas (Correo 2)
+function generarMensajeVillasCorreo2(nombreCompleto) {
+  const nombreCapitalizado = obtenerNombreCapitalizado(nombreCompleto);
+  const ahora = new Date();
+  const horaEspaña = new Intl.DateTimeFormat('es-ES', { 
+    timeZone: 'Europe/Madrid', 
+    hour: '2-digit', 
+    hour12: false 
+  }).format(ahora);
+  const hora = parseInt(horaEspaña, 10);
+  const saludo = (hora >= 13) ? 'Buenas tardes' : 'Buenos días';
+
+  return `${saludo} ${nombreCapitalizado}
+
+Ha sido un placer hablar con usted y poder resolver algunas de sus dudas acerca de la promoción Villas Isla de Cortegada. Le agradecemos de nuevo tanto su interés como el tiempo que nos dedicó en la llamada.
+
+Tal y como comentamos, y como habrá podido ver en el dossier que le enviamos previamente, se trata de un proyecto singular en un enclave privilegiado, donde cada vivienda combina diseño exclusivo, sostenibilidad certificada y unas vistas al mar que permanecerán siempre despejadas.
+
+Por la singularidad del proyecto y la demanda que estamos recibiendo, le animamos a actuar pronto para no dejar pasar la oportunidad de disfrutar de su nueva vivienda junto al mar.
+
+Nos encantaría acompañarle en el siguiente paso, ya sea realizando una reserva formal, lo que le otorgaría un carácter prioritario para asegurar la vivienda que elija y garantizar su disponibilidad exclusiva, o concertando una reunión presencial para que pueda conocer el proyecto más de cerca.
+
+Quedo a su disposición para coordinar lo que le resulte más cómodo.
+
+Un cordial saludo,`;
+}
+
+// MODIFICADO: Determinar asunto del email según tipo y correo seleccionado
+function obtenerAsuntoEmail(tipoVivienda, correoTipo) {
   if (tipoVivienda === 'Villas isla de Cortegada') {
+    if (correoTipo === '2') {
+      return 'Asegure su villa exclusiva hoy — Villas Isla de Cortegada';
+    }
+    // Correo 1 (por defecto)
     return 'Nueva promoción Villas Isla de Cortegada - Últimas unidades en primera línea de mar';
-  } else {
-    return 'Información detallada - Proyectopía, viviendas ecoeficientes';
   }
+  return 'Información detallada - Proyectopía, viviendas ecoeficientes';
 }
 
 // CAMBIADO - Función para crear el enlace mailto con correos adicionales
-function crearEnlaceEmail(email, nombreCompleto, tipoVivienda) {
-  const asunto = obtenerAsuntoEmail(tipoVivienda);
+function crearEnlaceEmail(email, nombreCompleto, tipoVivienda, correoTipo) {
+  const asunto = obtenerAsuntoEmail(tipoVivienda, correoTipo);
   
   // NUEVO - Correos adicionales que siempre se incluyen
   const correosAdicionales = 'tecnico@proyectopia.es;victorhermo@proyectopia.es';
@@ -1121,6 +1174,13 @@ function crearFilaDetalle(c, idPersona, tipoVivienda, nombre) {
         <div style="font-weight:600; font-size:1.03rem; margin-bottom:0.3rem; border-bottom:1px solid #cbd5e1; padding-bottom:0.18rem;">
           Mensaje para copiar
         </div>
+        <div class="selector-correo-container" style="display: ${tipoVivienda === 'Villas isla de Cortegada' ? 'flex' : 'none'}; align-items:center; gap:8px; margin-bottom: 0.3rem;">
+          <label for="selector-correo-${idPersona}" style="font-weight:600; font-size:0.9rem;">Correo:</label>
+          <select class="selector-correo" id="selector-correo-${idPersona}" style="border:1px solid #d1d5db; border-radius:6px; padding:4px 8px; font-size:0.9rem;">
+            <option value="1">Correo 1</option>
+            <option value="2">Correo 2</option>
+          </select>
+        </div>
         <div style="display: flex; justify-content: flex-end; margin-bottom: 0.3rem;">
           <button class="btn-copiar-mensaje"
             type="button"
@@ -1178,7 +1238,14 @@ function crearFilaDetalle(c, idPersona, tipoVivienda, nombre) {
 // Función modularizada para agregar contenido a la fila de detalle
 function agregarContenidoDetalle(trDetalle, c, tipoVivienda, nombre, idPersona) {
   const detalleInfoDiv = trDetalle.querySelector('.detalle-info');
-  const emailLink = crearEnlaceEmail(c['your-email'] || '', nombre, tipoVivienda);
+  // Determinar tipo de correo inicial (para Villas, basado en localStorage)
+  let correoTipoInicial = '1';
+  try {
+    if (tipoVivienda === 'Villas isla de Cortegada' && localStorage.getItem(`correo1Enviado_${idPersona}`) === 'true') {
+      correoTipoInicial = '2';
+    }
+  } catch (e) { /* ignore */ }
+  const emailLink = crearEnlaceEmail(c['your-email'] || '', nombre, tipoVivienda, correoTipoInicial);
 
   if (tipoVivienda === 'Villas isla de Cortegada') {
     detalleInfoDiv.innerHTML = `
@@ -1187,7 +1254,7 @@ function agregarContenidoDetalle(trDetalle, c, tipoVivienda, nombre, idPersona) 
       </div>
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
         <div class="detalle-email" style="word-break: break-all;">${c['your-email'] || ''}</div>
-        <a href="${emailLink}" style="background-color: #2563eb; color: white; padding: 6px 14px; border-radius: 6px; font-weight: 600; text-decoration: none; font-size: 0.92rem; transition: background-color 0.3s ease;" aria-label="Enviar email">
+        <a class="btn-enviar-email" href="${emailLink}" style="background-color: #2563eb; color: white; padding: 6px 14px; border-radius: 6px; font-weight: 600; text-decoration: none; font-size: 0.92rem; transition: background-color 0.3s ease;" aria-label="Enviar email">
           Enviar email
         </a>
       </div>
@@ -1206,7 +1273,7 @@ function agregarContenidoDetalle(trDetalle, c, tipoVivienda, nombre, idPersona) 
       </div>
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
         <div class="detalle-email" style="word-break: break-all;">${c['your-email'] || ''}</div>
-        <a href="${emailLink}" style="background-color: #2563eb; color: white; padding: 6px 14px; border-radius: 6px; font-weight: 600; text-decoration: none; font-size: 0.92rem; transition: background-color 0.3s ease;" aria-label="Enviar email">
+        <a href="${crearEnlaceEmail(c['your-email'] || '', nombre, tipoVivienda, '1')}" style="background-color: #2563eb; color: white; padding: 6px 14px; border-radius: 6px; font-weight: 600; text-decoration: none; font-size: 0.92rem; transition: background-color 0.3s ease;" aria-label="Enviar email">
           Enviar email
         </a>
       </div>
@@ -1226,8 +1293,11 @@ const inputFecha = trDetalle.querySelector(`#fecha-${idPersona}`);
 const inputHora = trDetalle.querySelector(`#hora-${idPersona}`);
 const inputMotivo = trDetalle.querySelector(`#motivo-${idPersona}`);
 const avisoDiv = trDetalle.querySelector(`#aviso-recordatorio-${idPersona}`);
-const btnProgramar = trDetalle.querySelector('.btn-programar-recordatorio');
-const btnHecho = trDetalle.querySelector('.btn-marcar-hecho');
+  const btnProgramar = trDetalle.querySelector('.btn-programar-recordatorio');
+  const btnHecho = trDetalle.querySelector('.btn-marcar-hecho');
+  const selectorCorreo = trDetalle.querySelector(`#selector-correo-${idPersona}`);
+  const textareaMensaje = trDetalle.querySelector('.texto-mensaje');
+  const btnEnviarEmail = trDetalle.querySelector('.btn-enviar-email');
 
 // Obtener fecha de recordatorio del contacto usando la función existente
 const fechaRecordatorio = obtenerFechaAvisoDate(c);
@@ -1251,6 +1321,32 @@ if (!isNaN(fechaRecordatorio) && fechaRecordatorio.getFullYear() > 1970) {
   if (inputHora) inputHora.value = '';
   actualizarAvisoRecordatorio(avisoDiv, '');
 }
+
+  // NUEVO: Inicializar selector de correo (solo para Villas)
+  if (tipoVivienda === 'Villas isla de Cortegada' && selectorCorreo) {
+    try {
+      const enviado = localStorage.getItem(`correo1Enviado_${idPersona}`) === 'true';
+      selectorCorreo.value = enviado ? '2' : '1';
+    } catch (e) { /* ignore */ }
+
+    const nombreCompleto = trDetalle.querySelector('.detalle-mensaje')?.dataset?.nombreCompleto || '';
+    const actualizarMensajeYAsunto = (tipo) => {
+      const texto = (tipo === '2') ? generarMensajeVillasCorreo2(nombreCompleto) : generarMensajeVillas(nombreCompleto);
+      if (textareaMensaje) textareaMensaje.value = texto;
+      if (btnEnviarEmail) btnEnviarEmail.href = crearEnlaceEmail(c['your-email'] || '', nombreCompleto, tipoVivienda, tipo);
+    };
+    actualizarMensajeYAsunto(selectorCorreo.value);
+    selectorCorreo.addEventListener('change', (e) => actualizarMensajeYAsunto(e.target.value));
+
+    // NUEVO: Registrar envío del primer correo al pulsar el botón de email
+    if (btnEnviarEmail) {
+      btnEnviarEmail.addEventListener('click', () => {
+        if (selectorCorreo.value === '1') {
+          try { localStorage.setItem(`correo1Enviado_${idPersona}`, 'true'); } catch (e) {}
+        }
+      });
+    }
+  }
 
   
 // 🛠 CHANGED - En el listener del botón programar, actualizar para mostrar botón eliminar
@@ -1393,7 +1489,7 @@ actualizarBadgeRecordatorios(contactosData);
 
   // Inicializar botón copiar e implementar evento
   const btnCopiar = trDetalle.querySelector('.btn-copiar-mensaje');
-  const textareaMensaje = trDetalle.querySelector('.texto-mensaje');
+  // Usamos la referencia ya declarada arriba: textareaMensaje
   const mensajeCopiado = trDetalle.querySelector('.mensaje-copiado');
 
   btnCopiar.innerHTML = copiarSVG;
@@ -1403,8 +1499,9 @@ actualizarBadgeRecordatorios(contactosData);
     const nombreCompleto = detalleMensaje.dataset.nombreCompleto;
     const plain = textareaMensaje.value;
     
+    const tipoCorreoSel = (tipoVivienda === 'Villas isla de Cortegada') ? (trDetalle.querySelector(`#selector-correo-${idPersona}`)?.value || '1') : '1';
     const html = (tipoVivienda === 'Villas isla de Cortegada') ?
-          generarMensajeHTMLVillas(nombreCompleto) : 
+          (tipoCorreoSel === '2' ? generarMensajeHTMLVillasCorreo2(nombreCompleto) : generarMensajeHTMLVillas(nombreCompleto)) : 
           generarMensajeHTML(nombreCompleto);
 
     if (navigator.clipboard && navigator.clipboard.write) {
@@ -1479,9 +1576,12 @@ function mostrarContactos(contactos) {
       htmlUbicacion = textoUbicacionFinal;
     }
     
+    // CORREGIDO: determinar tipo también por 'interes' cuando no hay vivienda-interesada
+    const interesCampo = (c['interes'] || '').trim();
     const viviendaInteresadaRaw = c['vivienda-interesada']?.trim() || '';
     const viviendaInteresada = (viviendaInteresadaRaw === '—') ? '' : viviendaInteresadaRaw;
-    const tipoVivienda = (viviendaInteresada !== '') ? 'Villas isla de Cortegada' : 'Vivienda normal';
+    const esVillas = (viviendaInteresada !== '') || interesCampo === 'Villas isla de Cortegada';
+    const tipoVivienda = esVillas ? 'Villas isla de Cortegada' : 'Vivienda normal';
     const inversion = c['number-419'] ?
   new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(c['number-419']) : '';
     
@@ -1671,6 +1771,8 @@ function agregarControlEliminados() {
       btnRestaurarTodos: document.getElementById('btnRestaurarTodos')
     };
   }
+
+  // (sin cambios adicionales aquí)
 
   // Contenedor estilo flex para alinear
   const controlsContainer = document.createElement('div');
@@ -2173,13 +2275,19 @@ function aplicarFiltro() {
     contactosFiltrados = datosBase;
   } else if (filtro === 'vivienda-normal') {
     contactosFiltrados = datosBase.filter(c => {
-      const vi = c['vivienda-interesada']?.trim() || '';
-      return vi === '' || vi === '—';
+      const interesCampo = (c['interes'] || '').trim();
+      const viRaw = c['vivienda-interesada']?.trim() || '';
+      const vi = (viRaw === '—') ? '' : viRaw;
+      const esVillas = (vi !== '') || interesCampo === 'Villas isla de Cortegada';
+      return !esVillas;
     });
   } else if (filtro === 'villas-isla') {
     contactosFiltrados = datosBase.filter(c => {
-      const vi = c['vivienda-interesada']?.trim() || '';
-      return vi !== '' && vi !== '—';
+      const interesCampo = (c['interes'] || '').trim();
+      const viRaw = c['vivienda-interesada']?.trim() || '';
+      const vi = (viRaw === '—') ? '' : viRaw;
+      const esVillas = (vi !== '') || interesCampo === 'Villas isla de Cortegada';
+      return esVillas;
     });
   }
 
